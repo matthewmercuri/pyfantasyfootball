@@ -11,6 +11,7 @@ FANT_TABLE_URL = 'https://www.pro-football-reference.com/years/'
 class Data:
     def __init__(self):
         self.cwd = os.getcwd()
+        self.url = 'https://www.pro-football-reference.com/'
 
     def fantasy_table(self, year=YEAR, save=False):
         # using bs4 to scrape fantasy table from bs4
@@ -108,6 +109,26 @@ class Data:
 
     def _additional_stats_fant_df(self, df):
         df['FantPt/G'] = df['FantPt'] / df['G']
+
+        return df
+
+    def career_gamelogs(self, player):
+        # Only able to get data for players with fantasy pts this year
+        player = player.upper()
+
+        players_dict = self.players()
+
+        info = players_dict[player]
+        # pos = info['Position']
+        link = info['Profile Link']
+
+        url = f'{self.url + link}/gamelog'
+        r = requests.get(url)
+        soup = BeautifulSoup(r.text, 'lxml')
+        table = soup.find('table')  # selecting table
+
+        df = pd.read_html(str(table), index_col=0)[0]
+
         return df
 
 
@@ -115,3 +136,4 @@ Data = Data()
 print(Data.fantasy_table())
 # Data.save_current_pos_rankings()
 # print(Data.players())
+print(Data.career_gamelogs('Russell Wilson'))
