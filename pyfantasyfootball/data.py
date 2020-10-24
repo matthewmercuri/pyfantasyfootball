@@ -127,7 +127,7 @@ class Data:
         players_dict = self.players()
 
         info = players_dict[player]
-        # pos = info['Position']
+        pos = info['Position']
         link = info['Profile Link']
 
         url = f'{self.url + link}/gamelog'
@@ -136,5 +136,14 @@ class Data:
         table = soup.find('table')  # selecting table
 
         df = pd.read_html(str(table), index_col=0)[0]
+
+        # initial cleaning
+        df.columns = df.columns.droplevel(0)  # rem double headers
+        df.set_index('Date', inplace=True)
+        df = df[df['Age'] != 'Age']
+        df.drop(df.tail(1).index, inplace=True)
+
+        if pos == 'QB':
+            col_name_mapper = {}
 
         return df
