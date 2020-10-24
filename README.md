@@ -11,3 +11,4 @@ Clean NFL data is hard to come by, and this package aims to alleviate the pain i
 ## Planned Features
 - Collect player career statistics for analysis
 - Allow the creation of training data for stats/ML models
+- Gather team depth charts

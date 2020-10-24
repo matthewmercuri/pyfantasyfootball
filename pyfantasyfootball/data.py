@@ -130,10 +130,3 @@ class Data:
         df = pd.read_html(str(table), index_col=0)[0]
 
         return df
-
-
-Data = Data()
-print(Data.fantasy_table())
-# Data.save_current_pos_rankings()
-# print(Data.players())
-print(Data.career_gamelogs('Russell Wilson'))
