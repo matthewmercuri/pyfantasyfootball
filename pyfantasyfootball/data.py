@@ -52,6 +52,14 @@ class Data:
         fant_df.set_index('Player', inplace=True)
         fant_df.sort_values(by='FantPt', ascending=False, inplace=True)
 
+        # renaming cols to make same name cols distinct
+        fant_df.columns = ['Tm', 'FantPos', 'Age', 'G', 'GS', 'Cmp', 'P_Att',
+                           'P_Yds', 'P_TD', 'Int', 'Ru_Att', 'Ru_Yds',
+                           'Y/Ru_A', 'Ru_TD', 'Tgt', 'Rec', 'Re_Yds', 'Y/Rec',
+                           'Re_TD', 'Fmb', 'FL', 'Tot TD', '2PM', '2PP',
+                           'FantPt', 'PPR', 'DKPt', 'FDPt', 'VBD', 'PosRank',
+                           'OvRank']
+
         # adding player links col
         fant_df['Prof Link'] = 'None'
         for player in fant_df.index:
