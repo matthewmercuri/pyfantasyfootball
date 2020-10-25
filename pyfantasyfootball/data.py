@@ -7,6 +7,18 @@ import requests
 YEAR = '2020'
 FANT_TABLE_URL = 'https://www.pro-football-reference.com/years/'
 
+# FANTASY POINTS
+FP_PASS_YDS = 0.04
+FP_PASS_TD = 4
+FP_INT = -2
+FP_RUSH_YDS = 0.1
+FP_RUSH_TD = 6
+FP_REC_YDS = 0.1
+FP_REC_TD = 6
+FP_KICK_PR_TD = 6
+FP_FUM_LOST = -2
+FP_2PT_CONV = 2
+
 
 class Data:
     def __init__(self):
@@ -127,7 +139,7 @@ class Data:
         players_dict = self.players()
 
         info = players_dict[player]
-        pos = info['Position']
+        # pos = info['Position']
         link = info['Profile Link']
 
         url = f'{self.url + link}/gamelog'
@@ -135,15 +147,50 @@ class Data:
         soup = BeautifulSoup(r.text, 'lxml')
         table = soup.find('table')  # selecting table
 
-        df = pd.read_html(str(table), index_col=0)[0]
+        df = pd.read_html(str(table))[0]
 
-        # initial cleaning
-        df.columns = df.columns.droplevel(0)  # rem double headers
-        df.set_index('Date', inplace=True)
+        col_names = []
+        for i, j in df.columns:
+            if i.startswith('Unnamed'):
+                col_names.append(j)
+            else:
+                col_names.append(f'{i}_{j}')
+
+        # cleaning (pretty rough)
+        df.columns = col_names
+        df.rename(columns={df.columns[7]: 'Away?'}, inplace=True)
         df = df[df['Age'] != 'Age']
         df.drop(df.tail(1).index, inplace=True)
+        df.fillna(0, inplace=True)
+        df.set_index('Rk', inplace=True)
+        # note this next line ignores cols with percentages
+        df = df.astype(dict.fromkeys(df.columns[10:], float), errors='ignore')
 
-        if pos == 'QB':
-            col_name_mapper = {}
+        return df
+
+    def fantasy_gamelogs(self, player):
+        player = player.upper()
+
+        df = self.career_gamelogs(player)
+
+        scoring_cols = ['Passing_Yds', 'Passing_TD', 'Passing_Int',
+                        'Rushing_Yds', 'Rushing_TD', 'Receiving_Yds',
+                        'Receiving_TD', 'Fumbles_FL', 'Scoring_2PM']
+
+        for col in scoring_cols:
+            if col not in df.columns:
+                df[col] = 0
+
+        df['FantPt'] = 0
+
+        df['FantPt'] = ((df['Passing_Yds'] * FP_PASS_YDS) +
+                        (df['Passing_TD'] * FP_PASS_TD) +
+                        (df['Passing_Int'] * FP_INT) +
+                        (df['Rushing_Yds'] * FP_RUSH_YDS) +
+                        (df['Rushing_TD'] * FP_RUSH_TD) +
+                        (df['Receiving_Yds'] * FP_REC_YDS) +
+                        (df['Receiving_TD'] * FP_REC_TD) +
+                        (df['Fumbles_FL'] * FP_FUM_LOST) +
+                        (df['Scoring_2PM'] * FP_2PT_CONV))
 
         return df
